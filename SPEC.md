@@ -152,22 +152,27 @@ sweepstakes.
 
 ## 6. The Draw — Allocation & Fairness
 
-### 6.1 Allocation rule: Auto-balance
-Distribute all entries across participants as evenly as possible.
+### 6.1 Allocation rule: Odds-balanced pot draw
+Entries are **ranked by odds** (their list `position`; 1 = best odds / favourite).
+The draw distributes them so the favourites are spread one-per-person rather than
+hoarded.
 
-- Let `E` = number of entries, `P` = number of participants.
-- Each participant receives **floor(E/P)** entries; the **E mod P** leftover
-  entries are assigned to a randomly chosen subset of participants (one extra
-  each). With 16 people and 48 entries → everyone gets exactly 3. With 17 people
-  and 48 entries → 14 get 3 and 3 get 2 (randomly chosen), etc.
-- If `P > E`: some participants get **zero** entries (chosen randomly). The UI must
-  surface this clearly before the draw ("More participants than entries — some
-  won't be assigned").
+- Let `E` = entries (in rank order), `P` = participants, `N = P.length`.
+- Deal `E` in rank order, one **pot** (a block of `N` entries) at a time. For each
+  pot, shuffle the participant order from the seed and give entry `j` of the pot to
+  shuffled participant `j`. So every player gets exactly one team from each full
+  pot — pot 1 = the top `N` favourites (one each), pot 2 = the next band, etc.
+- Each participant receives **floor(E/P)** entries; the **E mod P** leftover (the
+  lowest-ranked teams in the final partial pot) go to a random subset, one extra
+  each. E.g. 48 teams / 10 players → eight get 5, two get 4, and the ten favourites
+  land on ten different players.
+- If `P > E`: some participants get **zero** entries (random). The UI surfaces this
+  ("More participants than entries — some won't be assigned").
 - Edge cases: `P = 0` → draw disallowed. `E = 0` → draw disallowed.
 
-> **Future:** "one entry per person" (strict 1:1) and "organizer picks per draw"
-> are noted as later allocation modes; the schema (`allocation_rule` on the
-> sweepstake) is designed to accommodate them now.
+> Ordering the entries is how odds are expressed — no separate odds field. A flat
+> (un-ranked) list still distributes evenly; it just isn't odds-aware. Recorded as
+> **algorithm version 2** (v1 was a flat shuffle-and-deal).
 
 ### 6.2 Fairness model: Auditable seeded shuffle
 Chosen approach for v1 — **auditable log** (lightweight, no external dependency):

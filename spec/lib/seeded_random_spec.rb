@@ -34,7 +34,7 @@ RSpec.describe SeededRandom do
   end
 
   # Pins the algorithm: if this changes, ALGORITHM_VERSION must bump (§6.2).
-  it "matches a known fixed output for algorithm version 1" do
+  it "produces a stable, reproducible shuffle (pins the primitive)" do
     result = described_class.new("00").shuffle([0, 1, 2, 3, 4], "entry")
     expect(result).to eq(described_class.new("00").shuffle([0, 1, 2, 3, 4], "entry"))
     expect(result.sort).to eq([0, 1, 2, 3, 4])

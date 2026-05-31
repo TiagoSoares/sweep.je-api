@@ -2,30 +2,24 @@
 #
 # Ships the FIFA World Cup 2026 template — 48 teams (the 2026 tournament expanded
 # to 48). Editable: organizers can adjust teams when they create a sweepstake.
+#
+# ORDER MATTERS: teams are listed best-odds first (favourites at the top, long
+# shots at the bottom). The draw deals them in this order so favourites spread
+# one-per-person. Odds are an approximate pre-tournament ranking.
 
 WORLD_CUP_2026 = [
-  # Hosts
-  ["Canada", "🇨🇦"], ["Mexico", "🇲🇽"], ["United States", "🇺🇸"],
-  # UEFA (16)
-  ["England", "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], ["France", "🇫🇷"], ["Spain", "🇪🇸"], ["Germany", "🇩🇪"],
-  ["Portugal", "🇵🇹"], ["Netherlands", "🇳🇱"], ["Belgium", "🇧🇪"], ["Croatia", "🇭🇷"],
-  ["Switzerland", "🇨🇭"], ["Austria", "🇦🇹"], ["Norway", "🇳🇴"], ["Scotland", "🏴󠁧󠁢󠁳󠁣󠁴󠁿"],
-  ["Sweden", "🇸🇪"], ["Turkey", "🇹🇷"], ["Bosnia and Herzegovina", "🇧🇦"], ["Czechia", "🇨🇿"],
-  # CONMEBOL (6)
-  ["Argentina", "🇦🇷"], ["Brazil", "🇧🇷"], ["Uruguay", "🇺🇾"], ["Colombia", "🇨🇴"],
-  ["Ecuador", "🇪🇨"], ["Paraguay", "🇵🇾"],
-  # CONCACAF (3, non-host)
-  ["Panama", "🇵🇦"], ["Curaçao", "🇨🇼"], ["Haiti", "🇭🇹"],
-  # AFC (9, incl. Iraq via playoff)
-  ["Japan", "🇯🇵"], ["South Korea", "🇰🇷"], ["Iran", "🇮🇷"], ["Australia", "🇦🇺"],
-  ["Saudi Arabia", "🇸🇦"], ["Qatar", "🇶🇦"], ["Jordan", "🇯🇴"], ["Uzbekistan", "🇺🇿"],
-  ["Iraq", "🇮🇶"],
-  # CAF (10, incl. DR Congo via playoff)
-  ["Morocco", "🇲🇦"], ["Senegal", "🇸🇳"], ["Ivory Coast", "🇨🇮"], ["Egypt", "🇪🇬"],
-  ["Algeria", "🇩🇿"], ["Tunisia", "🇹🇳"], ["Ghana", "🇬🇭"], ["Cape Verde", "🇨🇻"],
-  ["South Africa", "🇿🇦"], ["DR Congo", "🇨🇩"],
-  # OFC (1)
-  ["New Zealand", "🇳🇿"]
+  ["France", "🇫🇷"], ["Spain", "🇪🇸"], ["England", "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], ["Brazil", "🇧🇷"],
+  ["Argentina", "🇦🇷"], ["Portugal", "🇵🇹"], ["Germany", "🇩🇪"], ["Netherlands", "🇳🇱"],
+  ["Belgium", "🇧🇪"], ["Croatia", "🇭🇷"], ["Uruguay", "🇺🇾"], ["Colombia", "🇨🇴"],
+  ["Morocco", "🇲🇦"], ["Switzerland", "🇨🇭"], ["Japan", "🇯🇵"], ["United States", "🇺🇸"],
+  ["Mexico", "🇲🇽"], ["Senegal", "🇸🇳"], ["Ecuador", "🇪🇨"], ["Austria", "🇦🇹"],
+  ["Sweden", "🇸🇪"], ["Turkey", "🇹🇷"], ["South Korea", "🇰🇷"], ["Australia", "🇦🇺"],
+  ["Canada", "🇨🇦"], ["Norway", "🇳🇴"], ["Scotland", "🏴󠁧󠁢󠁳󠁣󠁴󠁿"], ["Egypt", "🇪🇬"],
+  ["Ivory Coast", "🇨🇮"], ["Czechia", "🇨🇿"], ["Paraguay", "🇵🇾"], ["Algeria", "🇩🇿"],
+  ["Tunisia", "🇹🇳"], ["Iran", "🇮🇷"], ["Ghana", "🇬🇭"], ["Qatar", "🇶🇦"],
+  ["Saudi Arabia", "🇸🇦"], ["Bosnia and Herzegovina", "🇧🇦"], ["Iraq", "🇮🇶"], ["Jordan", "🇯🇴"],
+  ["Uzbekistan", "🇺🇿"], ["Panama", "🇵🇦"], ["South Africa", "🇿🇦"], ["DR Congo", "🇨🇩"],
+  ["Cape Verde", "🇨🇻"], ["Curaçao", "🇨🇼"], ["Haiti", "🇭🇹"], ["New Zealand", "🇳🇿"]
 ].freeze
 
 template = CompetitionTemplate.find_or_initialize_by(slug: "world-cup-2026")

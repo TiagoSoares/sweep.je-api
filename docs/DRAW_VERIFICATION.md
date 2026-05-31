@@ -1,4 +1,4 @@
-# Draw verification (algorithm version 1)
+# Draw verification (algorithm version 2)
 
 Every sweepstake draw is **reproducible from its published seed**. The
 `GET /api/v1/s/:share_token/verification` endpoint returns everything you need to
@@ -53,22 +53,24 @@ for i from (A.length - 1) down to 1:
     swap A[i], A[j]
 ```
 
-Shuffle the entries with label `"entry"` and the participants with label
-`"participant"` — two independent streams.
+### 3. Deal in rank-ordered pots
 
-### 3. Deal
-
-Deal the shuffled entries round-robin to the shuffled participants:
+`entry_order` (E) is the teams in **rank order** — best odds first. Deal them in
+that order, one pot at a time, where a pot is a block the size of the participant
+count `N = P.length`. For each pot, shuffle the **participant** list with a
+pot-specific stream and hand pot entry `j` to shuffled participant `j`:
 
 ```
-for i, entry in shuffled_entries:
-    participant = shuffled_participants[i mod shuffled_participants.length]
-    assign entry -> participant
+for pot_index, pot in enumerate(chunks of E, size N):     # E[0..N-1], E[N..2N-1], …
+    shuffled = fisher_yates_shuffle(P, label = "pot:" + pot_index)
+    for j, entry in enumerate(pot):
+        assign entry -> shuffled[j]
 ```
 
-Because the participant order is shuffled, when entries don't divide evenly the
-"extra" entries land on randomly chosen participants — this is the auto-balance
-rule (§6.1 of SPEC.md).
+So every player gets exactly one team from each full pot — the favourites (pot 0)
+spread one-per-person, the next band shared out, and so on. When the teams don't
+divide evenly, the final partial pot (the lowest-ranked leftovers) goes to the
+first `teams mod players` players of that pot's shuffle — a random subset.
 
 ### 4. Compare
 

@@ -8,7 +8,9 @@
 # NOTE: integers are reduced modulo n. For sweepstake-sized n (tens of entries)
 # against a 64-bit draw, modulo bias is negligible; this is documented, not hidden.
 class SeededRandom
-  ALGORITHM_VERSION = 1
+  # v2: odds-balanced pot draw (entries dealt in rank order, players shuffled
+  # per pot). v1 was a flat shuffle-and-deal. The shuffle primitive is unchanged.
+  ALGORITHM_VERSION = 2
   BITS = 64
 
   def initialize(seed)

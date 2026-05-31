@@ -74,7 +74,7 @@ RSpec.describe "Api::V1 Draws", type: :request do
       get "/api/v1/s/#{s.share_token}/verification"
       v = JSON.parse(response.body)["verification"]
       expect(v["seed"]).to be_present
-      expect(v["algorithm_version"]).to eq(1)
+      expect(v["algorithm_version"]).to eq(2)
       expect(v["entry_order"].size).to eq(3)
       expect(v["allocations"].size).to eq(3)
     end

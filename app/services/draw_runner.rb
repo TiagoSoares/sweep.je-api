@@ -1,6 +1,13 @@
-# Runs a sweepstake's draw: auto-balance allocation over an auditable seeded
-# shuffle (§6.1, §6.2). Transactional and idempotent — a sweepstake can only be
-# drawn once unless explicitly reset.
+# Runs a sweepstake's draw: a seeded, odds-balanced "pot" allocation (§6.1, §6.2).
+# Transactional and idempotent — a sweepstake can only be drawn once unless reset.
+#
+# Entries are ranked by their list order (position 1 = best odds / favourite).
+# The draw deals them in rank order, one "pot" (a block the size of the
+# participant count) at a time. Within each pot the participant order is shuffled
+# from the seed, so every player gets exactly one team from each pot — the
+# favourites spread one-per-person, the long-shots shared out. When the teams
+# don't divide evenly, the final partial pot (the lowest-ranked leftovers) lands
+# on a random subset of players.
 class DrawRunner
   # Raised when a draw can't run (already drawn, no participants, no entries).
   class NotDrawable < StandardError; end
@@ -15,15 +22,9 @@ class DrawRunner
     guard!
 
     participants = @sweepstake.participants.order(:created_at, :id).to_a
-    entries = @sweepstake.entries.order(:position, :id).to_a
+    entries = @sweepstake.entries.order(:position, :id).to_a # rank order (best first)
     seed = SeededRandom.generate_seed
     rng = SeededRandom.new(seed)
-
-    # Shuffle both decks from independent seed streams; deal entries round-robin
-    # to participants. Because participant order is shuffled, the few "extra"
-    # entries (when entries don't divide evenly) land on random participants.
-    shuffled_entries = rng.shuffle(entries, "entry")
-    shuffled_participants = rng.shuffle(participants, "participant")
 
     Sweepstake.transaction do
       draw = @sweepstake.draws.create!(
@@ -36,19 +37,27 @@ class DrawRunner
         trigger: @trigger
       )
 
-      rows = shuffled_entries.each_with_index.map do |entry, i|
-        participant = shuffled_participants[i % shuffled_participants.length]
-        { draw_id: draw.id, participant_id: participant.id, entry_id: entry.id,
-          created_at: Time.current, updated_at: Time.current }
-      end
-      Allocation.insert_all!(rows)
-
+      Allocation.insert_all!(allocate(draw, entries, participants, rng))
       @sweepstake.update!(status: :drawn)
       draw
     end
   end
 
   private
+
+  # Deal entries pot-by-pot in rank order; shuffle players within each pot.
+  def allocate(draw, entries, participants, rng)
+    now = Time.current
+    rows = []
+    entries.each_slice(participants.length).with_index do |pot, pot_index|
+      shuffled = rng.shuffle(participants, "pot:#{pot_index}")
+      pot.each_with_index do |entry, j|
+        rows << { draw_id: draw.id, participant_id: shuffled[j].id, entry_id: entry.id,
+                  created_at: now, updated_at: now }
+      end
+    end
+    rows
+  end
 
   def guard!
     raise NotDrawable, "This sweepstake has already been drawn" if @sweepstake.drawn?
