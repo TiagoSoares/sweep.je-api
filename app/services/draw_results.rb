@@ -3,8 +3,13 @@
 module DrawResults
   module_function
 
+  # An entry as { name, flag } (flag may be nil for manual entries).
+  def entry_hash(entry)
+    { name: entry.name, flag: entry.metadata.is_a?(Hash) ? entry.metadata["flag"] : nil }
+  end
+
   # Allocations grouped by participant, in registration order:
-  # [{ participant:, participant_id:, entries: [names…] }, …]
+  # [{ participant:, participant_id:, entries: [{name, flag}…], predictions: {} }, …]
   def results_for(sweepstake)
     draw = sweepstake.current_draw
     return nil unless draw
@@ -17,13 +22,13 @@ module DrawResults
         {
           participant: participant.name,
           participant_id: participant.public_id,
-          entries: allocs.map(&:entry).sort_by(&:position).map(&:name),
+          entries: allocs.map(&:entry).sort_by(&:position).map { |e| entry_hash(e) },
           predictions: participant.predictions
         }
       end
   end
 
-  # The entries assigned to one participant (for the /me view).
+  # The entries assigned to one participant (for the /me view), as { name, flag }.
   def entries_for(participant)
     draw = participant.sweepstake.current_draw
     return nil unless draw
@@ -33,7 +38,7 @@ module DrawResults
                .includes(:entry)
                .map(&:entry)
                .sort_by(&:position)
-               .map(&:name)
+               .map { |e| entry_hash(e) }
   end
 
   # Everything needed to independently reproduce and verify the draw (§4.4, §6.2):
