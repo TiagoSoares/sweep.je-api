@@ -1,0 +1,34 @@
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+# Ignore master key and any decrypted credentials — NEVER commit these.
+/config/master.key
+/config/credentials/*.key
+
+# Ignore environment files with secrets.
+/.env
+/.env.*
+!/.env.example
+
+# Ignore local-only files.
+/config/database.local.yml
