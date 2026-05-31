@@ -5,7 +5,7 @@ class SweepstakeSerializer
 
   attributes :name, :description, :status, :allocation_rule,
              :max_participants, :participants_public, :timezone,
-             :draw_at, :created_at
+             :draw_at, :created_at, :prediction_fields
 
   attribute :id do |s|
     s.public_id

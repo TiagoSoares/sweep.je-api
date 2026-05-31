@@ -8,7 +8,16 @@ class CompetitionTemplate < ApplicationRecord
                    format: { with: /\A[a-z0-9-]+\z/, message: "must be lowercase letters, numbers, and dashes" }
   validates :year, numericality: { only_integer: true, greater_than: 1900, less_than: 3000 }, allow_nil: true
 
+  normalizes :prediction_fields, with: lambda { |fields|
+    Array(fields).filter_map { |f| f.to_s.strip.presence }.uniq.first(Sweepstake::MAX_PREDICTION_FIELDS)
+  }
+
   scope :published, -> { where(status: :published) }
+
+  # Always an array, even when the column is NULL.
+  def prediction_fields
+    self[:prediction_fields] || []
+  end
 
   # Build (unsaved) Entry records for a new sweepstake from this template's
   # entries. Decoupled copy — later template edits never affect existing draws (§5).

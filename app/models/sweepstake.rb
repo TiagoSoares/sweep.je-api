@@ -4,6 +4,9 @@ class Sweepstake < ApplicationRecord
 
   # Upper bound on entries per sweepstake — guards against oversized payloads.
   MAX_ENTRIES = 500
+  # Free-text prediction questions (e.g. Golden Ball/Boot/Glove).
+  MAX_PREDICTION_FIELDS = 12
+  PREDICTION_LABEL_MAX = 60
 
   secure_token_field :share_token
 
@@ -36,11 +39,22 @@ class Sweepstake < ApplicationRecord
   # exists so future rules (one_per_person, etc.) need no migration.
   enum :allocation_rule, { auto_balance: 0 }, default: :auto_balance
 
+  # Normalize prediction fields to a clean, de-duplicated, capped list of labels.
+  normalizes :prediction_fields, with: lambda { |fields|
+    Array(fields).filter_map { |f| f.to_s.strip.presence }.uniq.first(MAX_PREDICTION_FIELDS)
+  }
+
   validates :name, presence: true, length: { maximum: 140 }
   validates :description, length: { maximum: 2000 }, allow_nil: true
   validates :timezone, presence: true, length: { maximum: 60 }
   validates :max_participants, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 100_000 }, allow_nil: true
   validate :timezone_must_be_valid
+  validate :prediction_fields_within_limits
+
+  # Always an array, even when the column is NULL.
+  def prediction_fields
+    self[:prediction_fields] || []
+  end
 
   # Registration is accepted only while open and below any participant cap.
   def registration_open?
@@ -65,5 +79,14 @@ class Sweepstake < ApplicationRecord
     TZInfo::Timezone.get(timezone)
   rescue TZInfo::InvalidTimezoneIdentifier
     errors.add(:timezone, "is not a valid time zone")
+  end
+
+  def prediction_fields_within_limits
+    if prediction_fields.size > MAX_PREDICTION_FIELDS
+      errors.add(:prediction_fields, "can have at most #{MAX_PREDICTION_FIELDS} questions")
+    end
+    if prediction_fields.any? { |f| f.length > PREDICTION_LABEL_MAX }
+      errors.add(:prediction_fields, "labels must be #{PREDICTION_LABEL_MAX} characters or fewer")
+    end
   end
 end

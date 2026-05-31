@@ -2,7 +2,7 @@
 class CompetitionTemplateSerializer
   include Alba::Resource
 
-  attributes :slug, :name, :category, :year, :status, :version
+  attributes :slug, :name, :category, :year, :status, :version, :prediction_fields
 
   attribute :entries_count do |t|
     t.template_entries.size

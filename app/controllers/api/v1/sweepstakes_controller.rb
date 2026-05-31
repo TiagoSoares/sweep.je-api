@@ -16,6 +16,10 @@ module Api
         sweepstake = current_user.sweepstakes.new(sweepstake_params)
         sweepstake.competition_template = selected_template # provenance (may be nil)
         populate_entries(sweepstake)
+        # Inherit the template's prediction questions when none were supplied.
+        if sweepstake.prediction_fields.empty? && selected_template
+          sweepstake.prediction_fields = selected_template.prediction_fields
+        end
         authorize sweepstake
 
         if sweepstake.save
@@ -85,7 +89,8 @@ module Api
 
       def sweepstake_params
         params.require(:sweepstake).permit(
-          :name, :description, :draw_at, :timezone, :max_participants, :participants_public
+          :name, :description, :draw_at, :timezone, :max_participants, :participants_public,
+          prediction_fields: []
         )
       end
 
@@ -114,10 +119,10 @@ module Api
       end
 
       def selected_template
-        slug = params.dig(:sweepstake, :template_slug)
-        return if slug.blank?
+        return @selected_template if defined?(@selected_template)
 
-        CompetitionTemplate.published.find_by(slug:)
+        slug = params.dig(:sweepstake, :template_slug)
+        @selected_template = slug.present? ? CompetitionTemplate.published.find_by(slug:) : nil
       end
 
       def render_conflict(detail)

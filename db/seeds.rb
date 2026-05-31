@@ -27,7 +27,8 @@ template.assign_attributes(
   name: "FIFA World Cup 2026",
   category: "football",
   year: 2026,
-  status: :published
+  status: :published,
+  prediction_fields: ["Golden Ball", "Golden Boot", "Golden Glove"]
 )
 template.save!
 

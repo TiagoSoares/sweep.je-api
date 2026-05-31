@@ -3,7 +3,7 @@
 class ParticipantSerializer
   include Alba::Resource
 
-  attributes :name, :created_at
+  attributes :name, :created_at, :predictions
 
   attribute :id do |participant|
     participant.public_id

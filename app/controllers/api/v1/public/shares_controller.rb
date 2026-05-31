@@ -24,6 +24,8 @@ module Api
             registered_ip: request.remote_ip,
             user_agent: request.user_agent
           )
+          # Filtered to the sweepstake's known questions by the model setter.
+          participant.predictions = predictions_param
 
           if participant.save
             render json: {
@@ -64,6 +66,13 @@ module Api
         def set_sweepstake
           @sweepstake = Sweepstake.includes(:user, :participants, :entries)
                                   .find_by!(share_token: params[:share_token])
+        end
+
+        # Raw { label => guess } map. Safe to take unfiltered: the model setter
+        # keeps only the sweepstake's known question labels.
+        def predictions_param
+          raw = params.dig(:participant, :predictions)
+          raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
         end
 
         def registration_closed_reason

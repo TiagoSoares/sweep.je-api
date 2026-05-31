@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_31_180003) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_31_190001) do
   create_table "allocations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "draw_id", null: false
@@ -28,6 +28,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_180003) do
     t.string "category"
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.json "prediction_fields"
     t.string "slug", null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
@@ -73,6 +74,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_180003) do
     t.string "claim_token", limit: 64, null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.json "predictions"
     t.string "public_id", limit: 26, null: false
     t.string "registered_ip"
     t.bigint "sweepstake_id", null: false
@@ -234,6 +236,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_180003) do
     t.integer "max_participants"
     t.string "name", null: false
     t.boolean "participants_public", default: true, null: false
+    t.json "prediction_fields"
     t.string "public_id", limit: 26, null: false
     t.string "share_token", limit: 64, null: false
     t.integer "status", default: 1, null: false

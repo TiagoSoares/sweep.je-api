@@ -17,7 +17,8 @@ module DrawResults
         {
           participant: participant.name,
           participant_id: participant.public_id,
-          entries: allocs.map(&:entry).sort_by(&:position).map(&:name)
+          entries: allocs.map(&:entry).sort_by(&:position).map(&:name),
+          predictions: participant.predictions
         }
       end
   end

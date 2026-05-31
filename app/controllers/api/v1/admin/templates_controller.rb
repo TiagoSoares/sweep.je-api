@@ -55,7 +55,7 @@ module Api
         end
 
         def template_params
-          params.require(:template).permit(:name, :slug, :category, :year, :status)
+          params.require(:template).permit(:name, :slug, :category, :year, :status, prediction_fields: [])
         end
 
         # Accepts `entries` as strings or { name:, metadata: } objects.

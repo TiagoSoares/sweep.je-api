@@ -4,7 +4,7 @@
 class PublicSweepstakeSerializer
   include Alba::Resource
 
-  attributes :name, :description, :status, :draw_at, :timezone
+  attributes :name, :description, :status, :draw_at, :timezone, :prediction_fields
 
   attribute :id do |s|
     s.public_id
@@ -30,11 +30,11 @@ class PublicSweepstakeSerializer
     s.participants_public
   end
 
-  # Names only, and only when the organizer opted to show them.
+  # Names (+ their prediction answers), only when the organizer opted to show them.
   attribute :participants do |s|
     next [] unless s.participants_public
 
-    s.participants.map { |p| { name: p.name, registered_at: p.created_at } }
+    s.participants.map { |p| { name: p.name, registered_at: p.created_at, predictions: p.predictions } }
   end
 
   # Draw results once drawn (nil otherwise): each participant and their entries.
