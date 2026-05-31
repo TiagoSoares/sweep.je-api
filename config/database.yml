@@ -49,3 +49,24 @@ production:
     <<: *primary_production
     database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_cable
     migrations_paths: db/cable_migrate
+
+# Staging mirrors production (same multi-database Solid setup); DB_NAME defaults
+# to sweep_staging so it never collides with production.
+staging:
+  primary: &primary_staging
+    <<: *default
+    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>
+    username: <%= ENV["DB_USERNAME"] %>
+    password: <%= ENV["DB_PASSWORD"] %>
+  cache:
+    <<: *primary_staging
+    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_staging
+    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_staging
+    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_cable
+    migrations_paths: db/cable_migrate
