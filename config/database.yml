@@ -1,0 +1,51 @@
+# MariaDB / MySQL configuration for sweep.je
+#
+# Local dev uses the pre-provisioned `sweep` MariaDB user, which has privileges
+# on all databases whose names start with `sweep`. Hence every database below is
+# named with a `sweep_` prefix.
+#
+# Credentials come from the environment only — never hardcode secrets here.
+# Local dev loads them from a git-ignored `.env` (see .env.example) via dotenv;
+# production supplies them as real environment variables. DB_PASSWORD has no
+# default on purpose, so a missing secret fails loudly instead of using a
+# checked-in password.
+default: &default
+  adapter: trilogy
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci   # case-insensitive, accent-insensitive (widely supported)
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: <%= ENV.fetch("DB_USERNAME", "sweep") %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  host: <%= ENV.fetch("DB_HOST", "127.0.0.1") %>
+
+development:
+  <<: *default
+  database: sweep_development
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: sweep_test
+
+# Production uses Solid Queue / Solid Cache / Solid Cable, each on its own
+# database (all `sweep_`-prefixed). Credentials come from env only.
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>
+    username: <%= ENV["DB_USERNAME"] %>
+    password: <%= ENV["DB_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_cable
+    migrations_paths: db/cable_migrate
