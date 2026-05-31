@@ -32,3 +32,7 @@
 
 # Ignore local-only files.
 /config/database.local.yml
+
+# Ignore editor / OS cruft.
+/.idea/
+.DS_Store
