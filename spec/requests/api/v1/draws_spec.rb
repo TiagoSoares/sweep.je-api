@@ -60,6 +60,33 @@ RSpec.describe "Api::V1 Draws", type: :request do
     end
   end
 
+  describe "GET /api/v1/sweepstakes/:id/presentation" do
+    it "returns teams + players with no allocations before the draw" do
+      s = drawable_sweepstake
+      get "/api/v1/sweepstakes/#{s.public_id}/presentation", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(json.dig("presentation", "status")).to eq("open")
+      expect(json.dig("presentation", "entries").size).to eq(3)
+      expect(json.dig("presentation", "participants").size).to eq(2)
+      expect(json.dig("presentation", "allocations")).to be_nil
+    end
+
+    it "returns team→player allocations (reveal order) after the draw" do
+      s = drawable_sweepstake
+      post "/api/v1/sweepstakes/#{s.public_id}/draw", headers: headers
+      get "/api/v1/sweepstakes/#{s.public_id}/presentation", headers: headers
+      allocs = json.dig("presentation", "allocations")
+      expect(allocs.size).to eq(3)
+      expect(allocs).to all(include("entry_id", "participant_id"))
+    end
+
+    it "forbids another organizer" do
+      s = drawable_sweepstake(owner: create(:user))
+      get "/api/v1/sweepstakes/#{s.public_id}/presentation", headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe "public results and verification" do
     it "exposes results and a reproducible verification payload after the draw" do
       s = drawable_sweepstake

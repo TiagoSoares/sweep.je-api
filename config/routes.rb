@@ -20,6 +20,7 @@ Rails.application.routes.draw do
           post :lock
           post :draw
           post :reset_draw
+          get :presentation
         end
         resources :entries, only: %i[index create] do
           collection { post :bulk }

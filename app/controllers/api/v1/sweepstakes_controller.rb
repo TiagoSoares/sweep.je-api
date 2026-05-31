@@ -1,7 +1,7 @@
 module Api
   module V1
     class SweepstakesController < BaseController
-      before_action :set_sweepstake, only: %i[show update destroy lock draw reset_draw]
+      before_action :set_sweepstake, only: %i[show update destroy lock draw reset_draw presentation]
 
       # GET /api/v1/sweepstakes
       def index
@@ -80,7 +80,37 @@ module Api
         render json: { sweepstake: SweepstakeSerializer.new(@sweepstake.reload).serializable_hash }
       end
 
+      # GET /api/v1/sweepstakes/:id/presentation — data for the live-draw reveal:
+      # the teams (rank order, with flags), the players, and — once drawn — which
+      # team went to which player, in reveal order.
+      def presentation
+        entries = @sweepstake.entries.order(:position, :id)
+        participants = @sweepstake.participants.order(:created_at, :id)
+
+        allocations =
+          if @sweepstake.drawn? && (draw = @sweepstake.current_draw)
+            by_entry = draw.allocations.includes(:participant).index_by(&:entry_id)
+            entries.map do |e|
+              { entry_id: e.public_id, participant_id: by_entry[e.id]&.participant&.public_id }
+            end
+          end
+
+        render json: {
+          presentation: {
+            status: @sweepstake.status,
+            name: @sweepstake.name,
+            entries: entries.map { |e| { id: e.public_id, name: e.name, flag: entry_flag(e) } },
+            participants: participants.map { |p| { id: p.public_id, name: p.name } },
+            allocations: allocations
+          }
+        }
+      end
+
       private
+
+      def entry_flag(entry)
+        entry.metadata.is_a?(Hash) ? entry.metadata["flag"] : nil
+      end
 
       def set_sweepstake
         @sweepstake = current_user.sweepstakes.find_by_public_id!(params[:id])
