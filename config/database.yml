@@ -29,44 +29,19 @@ test:
   <<: *default
   database: sweep_test
 
-# Production uses Solid Queue / Solid Cache / Solid Cable, each on its own
-# database (all `sweep_`-prefixed). Credentials come from env only.
+# Single database. Solid Queue / Solid Cache / Solid Cable all live in this one
+# database (their tables are created by regular migrations), so the deploy needs
+# privileges on just one database. Credentials come from env only.
 production:
-  primary: &primary_production
-    <<: *default
-    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>
-    username: <%= ENV["DB_USERNAME"] %>
-    password: <%= ENV["DB_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>_cable
-    migrations_paths: db/cable_migrate
+  <<: *default
+  database: <%= ENV.fetch("DB_NAME") { "sweep_production" } %>
+  username: <%= ENV["DB_USERNAME"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
 
-# Staging mirrors production (same multi-database Solid setup); DB_NAME defaults
-# to sweep_staging so it never collides with production.
+# Staging mirrors production; DB_NAME defaults to sweep_staging so it never
+# collides with production.
 staging:
-  primary: &primary_staging
-    <<: *default
-    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>
-    username: <%= ENV["DB_USERNAME"] %>
-    password: <%= ENV["DB_PASSWORD"] %>
-  cache:
-    <<: *primary_staging
-    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_staging
-    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_staging
-    database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>_cable
-    migrations_paths: db/cable_migrate
+  <<: *default
+  database: <%= ENV.fetch("DB_NAME") { "sweep_staging" } %>
+  username: <%= ENV["DB_USERNAME"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
