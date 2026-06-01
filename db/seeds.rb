@@ -8,18 +8,18 @@
 # one-per-person. Odds are an approximate pre-tournament ranking.
 
 WORLD_CUP_2026 = [
-  ["France", "🇫🇷"], ["Spain", "🇪🇸"], ["England", "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], ["Brazil", "🇧🇷"],
-  ["Argentina", "🇦🇷"], ["Portugal", "🇵🇹"], ["Germany", "🇩🇪"], ["Netherlands", "🇳🇱"],
-  ["Belgium", "🇧🇪"], ["Croatia", "🇭🇷"], ["Uruguay", "🇺🇾"], ["Colombia", "🇨🇴"],
-  ["Morocco", "🇲🇦"], ["Switzerland", "🇨🇭"], ["Japan", "🇯🇵"], ["United States", "🇺🇸"],
-  ["Mexico", "🇲🇽"], ["Senegal", "🇸🇳"], ["Ecuador", "🇪🇨"], ["Austria", "🇦🇹"],
-  ["Sweden", "🇸🇪"], ["Turkey", "🇹🇷"], ["South Korea", "🇰🇷"], ["Australia", "🇦🇺"],
-  ["Canada", "🇨🇦"], ["Norway", "🇳🇴"], ["Scotland", "🏴󠁧󠁢󠁳󠁣󠁴󠁿"], ["Egypt", "🇪🇬"],
-  ["Ivory Coast", "🇨🇮"], ["Czechia", "🇨🇿"], ["Paraguay", "🇵🇾"], ["Algeria", "🇩🇿"],
-  ["Tunisia", "🇹🇳"], ["Iran", "🇮🇷"], ["Ghana", "🇬🇭"], ["Qatar", "🇶🇦"],
-  ["Saudi Arabia", "🇸🇦"], ["Bosnia and Herzegovina", "🇧🇦"], ["Iraq", "🇮🇶"], ["Jordan", "🇯🇴"],
-  ["Uzbekistan", "🇺🇿"], ["Panama", "🇵🇦"], ["South Africa", "🇿🇦"], ["DR Congo", "🇨🇩"],
-  ["Cape Verde", "🇨🇻"], ["Curaçao", "🇨🇼"], ["Haiti", "🇭🇹"], ["New Zealand", "🇳🇿"]
+  ["France", "🇫🇷"], ["Spain", "🇪🇸"], ["Argentina", "🇦🇷"], ["England", "🏴󠁧󠁢󠁥󠁮󠁧󠁿"],
+  ["Portugal", "🇵🇹"], ["Brazil", "🇧🇷"], ["Netherlands", "🇳🇱"], ["Morocco", "🇲🇦"],
+  ["Belgium", "🇧🇪"], ["Germany", "🇩🇪"], ["Croatia", "🇭🇷"], ["Colombia", "🇨🇴"],
+  ["Senegal", "🇸🇳"], ["Mexico", "🇲🇽"], ["United States", "🇺🇸"], ["Uruguay", "🇺🇾"],
+  ["Japan", "🇯🇵"], ["Switzerland", "🇨🇭"], ["Iran", "🇮🇷"], ["Türkiye", "🇹🇷"],
+  ["Ecuador", "🇪🇨"], ["Austria", "🇦🇹"], ["South Korea", "🇰🇷"], ["Australia", "🇦🇺"],
+  ["Algeria", "🇩🇿"], ["Egypt", "🇪🇬"], ["Canada", "🇨🇦"], ["Norway", "🇳🇴"],
+  ["Panama", "🇵🇦"], ["Côte d’Ivoire", "🇨🇮"], ["Sweden", "🇸🇪"], ["Paraguay", "🇵🇾"],
+  ["Czechia", "🇨🇿"], ["Scotland", "🏴󠁧󠁢󠁳󠁣󠁴󠁿"], ["Tunisia", "🇹🇳"], ["DR Congo", "🇨🇩"],
+  ["Uzbekistan", "🇺🇿"], ["Qatar", "🇶🇦"], ["Iraq", "🇮🇶"], ["South Africa", "🇿🇦"],
+  ["Saudi Arabia", "🇸🇦"], ["Jordan", "🇯🇴"], ["Bosnia and Herzegovina", "🇧🇦"], ["Cape Verde", "🇨🇻"],
+  ["Ghana", "🇬🇭"], ["Curaçao", "🇨🇼"], ["Haiti", "🇭🇹"], ["New Zealand", "🇳🇿"]
 ].freeze
 
 template = CompetitionTemplate.find_or_initialize_by(slug: "world-cup-2026")
