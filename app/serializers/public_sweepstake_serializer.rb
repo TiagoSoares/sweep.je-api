@@ -4,7 +4,7 @@
 class PublicSweepstakeSerializer
   include Alba::Resource
 
-  attributes :name, :description, :status, :draw_at, :timezone, :prediction_fields
+  attributes :name, :description, :status, :draw_at, :timezone, :prediction_fields, :prizes
 
   attribute :id do |s|
     s.public_id

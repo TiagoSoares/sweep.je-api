@@ -8,6 +8,13 @@ class Sweepstake < ApplicationRecord
   MAX_PREDICTION_FIELDS = 12
   PREDICTION_LABEL_MAX = 60
 
+  # Prizes (e.g. 1st/2nd/3rd place, a prize per prediction question, or custom
+  # extras like a wooden spoon). Stored as an ordered list of objects.
+  MAX_PRIZES = 50
+  PRIZE_LABEL_MAX = 80
+  PRIZE_VALUE_MAX = 200
+  PRIZE_KINDS = %w[position prediction custom].freeze
+
   secure_token_field :share_token
 
   belongs_to :user
@@ -44,16 +51,43 @@ class Sweepstake < ApplicationRecord
     Array(fields).filter_map { |f| f.to_s.strip.presence }.uniq.first(MAX_PREDICTION_FIELDS)
   }
 
+  # Normalize prizes to a clean list of { "kind", "label", "prize" } hashes.
+  # Each entry needs a non-blank prize value (an empty position row is dropped);
+  # labels/values are trimmed, kinds are coerced to a known kind, and the list is
+  # capped. Order is preserved (it's the display order).
+  normalizes :prizes, with: ->(prizes) { Sweepstake.normalize_prizes(prizes) }
+
+  def self.normalize_prizes(prizes)
+    Array(prizes).filter_map do |raw|
+      attrs = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+      next unless attrs.is_a?(Hash)
+
+      attrs = attrs.symbolize_keys
+      prize = attrs[:prize].to_s.strip
+      next if prize.blank?
+
+      kind = attrs[:kind].to_s
+      kind = "custom" unless PRIZE_KINDS.include?(kind)
+      { "kind" => kind, "label" => attrs[:label].to_s.strip, "prize" => prize }
+    end.first(MAX_PRIZES)
+  end
+
   validates :name, presence: true, length: { maximum: 140 }
   validates :description, length: { maximum: 2000 }, allow_nil: true
   validates :timezone, presence: true, length: { maximum: 60 }
   validates :max_participants, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 100_000 }, allow_nil: true
   validate :timezone_must_be_valid
   validate :prediction_fields_within_limits
+  validate :prizes_within_limits
 
   # Always an array, even when the column is NULL.
   def prediction_fields
     self[:prediction_fields] || []
+  end
+
+  # Always an array, even when the column is NULL.
+  def prizes
+    self[:prizes] || []
   end
 
   # Registration is accepted only while open and below any participant cap.
@@ -87,6 +121,18 @@ class Sweepstake < ApplicationRecord
     end
     if prediction_fields.any? { |f| f.length > PREDICTION_LABEL_MAX }
       errors.add(:prediction_fields, "labels must be #{PREDICTION_LABEL_MAX} characters or fewer")
+    end
+  end
+
+  def prizes_within_limits
+    if prizes.size > MAX_PRIZES
+      errors.add(:prizes, "can have at most #{MAX_PRIZES} prizes")
+    end
+    if prizes.any? { |p| p["label"].to_s.length > PRIZE_LABEL_MAX }
+      errors.add(:prizes, "labels must be #{PRIZE_LABEL_MAX} characters or fewer")
+    end
+    if prizes.any? { |p| p["prize"].to_s.length > PRIZE_VALUE_MAX }
+      errors.add(:prizes, "must be #{PRIZE_VALUE_MAX} characters or fewer")
     end
   end
 end

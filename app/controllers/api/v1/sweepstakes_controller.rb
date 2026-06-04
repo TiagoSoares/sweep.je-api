@@ -120,7 +120,8 @@ module Api
       def sweepstake_params
         params.require(:sweepstake).permit(
           :name, :description, :draw_at, :timezone, :max_participants, :participants_public,
-          prediction_fields: []
+          prediction_fields: [],
+          prizes: %i[kind label prize]
         )
       end
 
