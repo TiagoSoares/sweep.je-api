@@ -34,6 +34,12 @@ class PublicSweepstakeSerializer
     s.allow_multiple_entries
   end
 
+  # Total entries claimed across all participants (people may hold several), so
+  # the scoreboard can show entries, not just the head-count.
+  attribute :entries_used do |s|
+    s.entries_used
+  end
+
   # Free entry slots left before hitting the team count (nil when uncapped). Lets
   # the share page bound the "number of entries" picker so totals stay <= teams.
   attribute :entries_remaining do |s|

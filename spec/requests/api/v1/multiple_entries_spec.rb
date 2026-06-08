@@ -26,11 +26,13 @@ RSpec.describe "Api::V1 multiple entries", type: :request do
       expect(json.dig("sweepstake", "allow_multiple_entries")).to be(true)
     end
 
-    it "exposes the flag and remaining entries on the public share page" do
+    it "exposes the flag and entry totals on the public share page" do
       sweepstake = create(:sweepstake, :with_entries, entries_count: 8, allow_multiple_entries: true)
+      create(:participant, sweepstake: sweepstake, entries_count: 3)
       get "/api/v1/s/#{sweepstake.share_token}"
       expect(json.dig("sweepstake", "allow_multiple_entries")).to be(true)
-      expect(json.dig("sweepstake", "entries_remaining")).to eq(8)
+      expect(json.dig("sweepstake", "entries_used")).to eq(3)
+      expect(json.dig("sweepstake", "entries_remaining")).to eq(5)
     end
   end
 
