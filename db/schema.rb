@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_120002) do
   create_table "allocations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "draw_id", null: false
@@ -73,6 +73,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
   create_table "participants", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "claim_token", limit: 64, null: false
     t.datetime "created_at", null: false
+    t.integer "entries_count", default: 1, null: false
     t.string "name", null: false
     t.json "predictions"
     t.string "public_id", limit: 26, null: false

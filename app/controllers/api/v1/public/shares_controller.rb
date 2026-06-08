@@ -14,39 +14,33 @@ module Api
 
         # POST /api/v1/s/:share_token/register  { participant: { name }, quantity }
         #
-        # `quantity` lets a person claim several entries at once, but only when the
-        # organizer allowed multiple entries — otherwise it's forced to 1. It's
-        # also clamped to the per-registration cap and to any remaining capacity.
+        # `quantity` lets a person hold several entries in the draw, but only when
+        # the organizer allowed multiple entries — otherwise it's forced to 1. It's
+        # clamped to the per-registration cap and to the free entry slots left, so
+        # the total entries never exceed the team count (everyone gets at least one).
         def register
           unless @sweepstake.accepting_registrations?
             return render_error(status: :conflict, code: "registration_closed",
                                 detail: registration_closed_reason)
           end
 
-          quantity = effective_quantity
-          name = params.dig(:participant, :name).to_s.strip
-          predictions = predictions_param
+          participant = @sweepstake.participants.new(
+            name: params.dig(:participant, :name).to_s.strip,
+            entries_count: effective_quantity,
+            registered_ip: request.remote_ip,
+            user_agent: request.user_agent
+          )
+          # Filtered to the sweepstake's known questions by the model setter.
+          participant.predictions = predictions_param
 
-          participants = quantity.times.map do
-            @sweepstake.participants.new(
-              name:,
-              registered_ip: request.remote_ip,
-              user_agent: request.user_agent,
-              predictions: predictions # filtered to known questions by the model setter
-            )
-          end
-
-          # All-or-nothing: one invalid record (e.g. a blank name) fails the batch.
-          if participants.all?(&:valid?)
-            Sweepstake.transaction { participants.each(&:save!) }
-            first = participants.first
+          if participant.save
             render json: {
-              claim_token: first.claim_token,
-              count: participants.size,
-              participant: ParticipantSerializer.new(first).serializable_hash
+              claim_token: participant.claim_token,
+              count: participant.entries_count,
+              participant: ParticipantSerializer.new(participant).serializable_hash
             }, status: :created
           else
-            render_errors(participants.find(&:invalid?) || participants.first)
+            render_errors(participant)
           end
         end
 
@@ -81,17 +75,18 @@ module Api
                                   .find_by!(share_token: params[:share_token])
         end
 
-        # How many participant rows this registration should create. Always 1
-        # unless the organizer allowed multiple entries; then clamped to the
-        # per-registration cap and to any remaining capacity.
+        # How many entries this registration claims. Always 1 unless the organizer
+        # allowed multiple entries; then clamped to the per-registration cap and to
+        # the free entry slots left (so totals never exceed the team count). At
+        # least 1 — accepting_registrations? guarantees a slot is free.
         def effective_quantity
-          return 1 unless @sweepstake.allow_multiple_entries
+          max_per_reg = @sweepstake.allow_multiple_entries ? Sweepstake::MAX_ENTRIES_PER_REGISTRATION : 1
+          remaining = @sweepstake.remaining_entries
+          cap = remaining ? [max_per_reg, remaining].min : max_per_reg
 
-          requested = (params[:quantity] || params.dig(:participant, :quantity)).to_i
+          requested = @sweepstake.allow_multiple_entries ? (params[:quantity] || params.dig(:participant, :quantity)).to_i : 1
           requested = 1 if requested < 1
-          requested = [requested, Sweepstake::MAX_ENTRIES_PER_REGISTRATION].min
-          remaining = @sweepstake.remaining_capacity
-          remaining ? [requested, remaining].min : requested
+          [requested, cap].min
         end
 
         # Raw { label => guess } map. Safe to take unfiltered: the model setter

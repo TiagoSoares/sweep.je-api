@@ -27,6 +27,21 @@ class SweepstakeSerializer
     s.participants.size
   end
 
+  # Total entries claimed across all participants, the cap (= team count), and
+  # how many slots are left. entry_capacity/entries_remaining are nil when no
+  # teams exist yet.
+  attribute :entries_used do |s|
+    s.entries_used
+  end
+
+  attribute :entry_capacity do |s|
+    s.entry_capacity
+  end
+
+  attribute :entries_remaining do |s|
+    s.remaining_entries
+  end
+
   # Draw results once drawn (nil otherwise), so the manage screen can show them.
   attribute :results do |s|
     DrawResults.results_for(s)

@@ -12,6 +12,16 @@ class Participant < ApplicationRecord
   # Duplicate names are intentionally allowed (§7); the UI warns on exact match.
   validates :name, presence: true, length: { maximum: 80 }
 
+  # How many entries (draw slots) this person holds. At least one; capped per
+  # registration. The total across participants is bounded by the team count in
+  # the registration flow so no one ends up with nothing.
+  validates :entries_count,
+            numericality: {
+              only_integer: true,
+              greater_than: 0,
+              less_than_or_equal_to: Sweepstake::MAX_ENTRIES_PER_REGISTRATION
+            }
+
   # Restrict answers to the sweepstake's known questions just before saving, so it
   # works regardless of attribute assignment order.
   before_validation :restrict_predictions_to_known_questions

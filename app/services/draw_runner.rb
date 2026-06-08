@@ -22,6 +22,9 @@ class DrawRunner
     guard!
 
     participants = @sweepstake.participants.order(:created_at, :id).to_a
+    # Each entry a participant holds is its own slot in the draw, so someone with
+    # entries_count = 6 is dealt teams as if they were six separate players.
+    slots = participants.flat_map { |p| Array.new(p.entries_count, p) }
     entries = @sweepstake.entries.order(:position, :id).to_a # rank order (best first)
     seed = SeededRandom.generate_seed
     rng = SeededRandom.new(seed)
@@ -30,14 +33,14 @@ class DrawRunner
       draw = @sweepstake.draws.create!(
         seed:,
         algorithm_version: SeededRandom::ALGORITHM_VERSION,
-        participant_order: participants.map(&:public_id),
+        participant_order: slots.map(&:public_id),
         entry_order: entries.map(&:public_id),
         run_at: Time.current,
         run_by: @run_by,
         trigger: @trigger
       )
 
-      Allocation.insert_all!(allocate(draw, entries, participants, rng))
+      Allocation.insert_all!(allocate(draw, entries, slots, rng))
       @sweepstake.update!(status: :drawn)
       draw
     end
@@ -45,12 +48,13 @@ class DrawRunner
 
   private
 
-  # Deal entries pot-by-pot in rank order; shuffle players within each pot.
-  def allocate(draw, entries, participants, rng)
+  # Deal entries pot-by-pot in rank order; shuffle slots within each pot. A "slot"
+  # is one of a participant's entries, so a participant appears once per entry.
+  def allocate(draw, entries, slots, rng)
     now = Time.current
     rows = []
-    entries.each_slice(participants.length).with_index do |pot, pot_index|
-      shuffled = rng.shuffle(participants, "pot:#{pot_index}")
+    entries.each_slice(slots.length).with_index do |pot, pot_index|
+      shuffled = rng.shuffle(slots, "pot:#{pot_index}")
       pot.each_with_index do |entry, j|
         rows << { draw_id: draw.id, participant_id: shuffled[j].id, entry_id: entry.id,
                   created_at: now, updated_at: now }

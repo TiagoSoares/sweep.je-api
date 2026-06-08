@@ -34,11 +34,19 @@ class PublicSweepstakeSerializer
     s.allow_multiple_entries
   end
 
+  # Free entry slots left before hitting the team count (nil when uncapped). Lets
+  # the share page bound the "number of entries" picker so totals stay <= teams.
+  attribute :entries_remaining do |s|
+    s.remaining_entries
+  end
+
   # Names (+ their prediction answers), only when the organizer opted to show them.
   attribute :participants do |s|
     next [] unless s.participants_public
 
-    s.participants.map { |p| { name: p.name, registered_at: p.created_at, predictions: p.predictions } }
+    s.participants.map do |p|
+      { name: p.name, registered_at: p.created_at, predictions: p.predictions, entries: p.entries_count }
+    end
   end
 
   # Draw results once drawn (nil otherwise): each participant and their entries.

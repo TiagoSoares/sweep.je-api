@@ -98,15 +98,33 @@ class Sweepstake < ApplicationRecord
     open?
   end
 
+  # Full when either the organizer's people cap is reached or there are no free
+  # entry slots left (total entries can't exceed the number of teams, so everyone
+  # is guaranteed at least one in the draw).
   def full?
-    max_participants.present? && participants.count >= max_participants
+    people_capped = max_participants.present? && participants.count >= max_participants
+    people_capped || remaining_entries == 0
   end
 
-  # How many more participants can register; nil when there is no cap.
-  def remaining_capacity
-    return nil if max_participants.blank?
+  # Max total entries across all participants: one per team, so every entry can be
+  # dealt a team and no one is left empty-handed. nil when no teams exist yet.
+  def entry_capacity
+    count = entries.size
+    count.positive? ? count : nil
+  end
 
-    [max_participants - participants.count, 0].max
+  # Entries already claimed across all participants.
+  def entries_used
+    participants.sum(:entries_count)
+  end
+
+  # Free entry slots remaining before hitting the team count; nil when uncapped
+  # (no teams set yet).
+  def remaining_entries
+    cap = entry_capacity
+    return nil unless cap
+
+    [cap - entries_used, 0].max
   end
 
   def accepting_registrations?
