@@ -12,28 +12,41 @@ module Api
           render json: { sweepstake: PublicSweepstakeSerializer.new(@sweepstake).serializable_hash }
         end
 
-        # POST /api/v1/s/:share_token/register  { participant: { name } }
+        # POST /api/v1/s/:share_token/register  { participant: { name }, quantity }
+        #
+        # `quantity` lets a person claim several entries at once, but only when the
+        # organizer allowed multiple entries — otherwise it's forced to 1. It's
+        # also clamped to the per-registration cap and to any remaining capacity.
         def register
           unless @sweepstake.accepting_registrations?
             return render_error(status: :conflict, code: "registration_closed",
                                 detail: registration_closed_reason)
           end
 
-          participant = @sweepstake.participants.new(
-            name: params.dig(:participant, :name).to_s.strip,
-            registered_ip: request.remote_ip,
-            user_agent: request.user_agent
-          )
-          # Filtered to the sweepstake's known questions by the model setter.
-          participant.predictions = predictions_param
+          quantity = effective_quantity
+          name = params.dig(:participant, :name).to_s.strip
+          predictions = predictions_param
 
-          if participant.save
+          participants = quantity.times.map do
+            @sweepstake.participants.new(
+              name:,
+              registered_ip: request.remote_ip,
+              user_agent: request.user_agent,
+              predictions: predictions # filtered to known questions by the model setter
+            )
+          end
+
+          # All-or-nothing: one invalid record (e.g. a blank name) fails the batch.
+          if participants.all?(&:valid?)
+            Sweepstake.transaction { participants.each(&:save!) }
+            first = participants.first
             render json: {
-              claim_token: participant.claim_token,
-              participant: ParticipantSerializer.new(participant).serializable_hash
+              claim_token: first.claim_token,
+              count: participants.size,
+              participant: ParticipantSerializer.new(first).serializable_hash
             }, status: :created
           else
-            render_errors(participant)
+            render_errors(participants.find(&:invalid?) || participants.first)
           end
         end
 
@@ -66,6 +79,19 @@ module Api
         def set_sweepstake
           @sweepstake = Sweepstake.includes(:user, :participants, :entries)
                                   .find_by!(share_token: params[:share_token])
+        end
+
+        # How many participant rows this registration should create. Always 1
+        # unless the organizer allowed multiple entries; then clamped to the
+        # per-registration cap and to any remaining capacity.
+        def effective_quantity
+          return 1 unless @sweepstake.allow_multiple_entries
+
+          requested = (params[:quantity] || params.dig(:participant, :quantity)).to_i
+          requested = 1 if requested < 1
+          requested = [requested, Sweepstake::MAX_ENTRIES_PER_REGISTRATION].min
+          remaining = @sweepstake.remaining_capacity
+          remaining ? [requested, remaining].min : requested
         end
 
         # Raw { label => guess } map. Safe to take unfiltered: the model setter

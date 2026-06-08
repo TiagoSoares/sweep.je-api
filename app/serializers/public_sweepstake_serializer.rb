@@ -30,6 +30,10 @@ class PublicSweepstakeSerializer
     s.participants_public
   end
 
+  attribute :allow_multiple_entries do |s|
+    s.allow_multiple_entries
+  end
+
   # Names (+ their prediction answers), only when the organizer opted to show them.
   attribute :participants do |s|
     next [] unless s.participants_public

@@ -4,7 +4,7 @@ class SweepstakeSerializer
   include Alba::Resource
 
   attributes :name, :description, :status, :allocation_rule,
-             :max_participants, :participants_public, :timezone,
+             :max_participants, :participants_public, :allow_multiple_entries, :timezone,
              :draw_at, :created_at, :prediction_fields, :prizes
 
   attribute :id do |s|

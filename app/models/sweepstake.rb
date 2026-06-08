@@ -4,6 +4,9 @@ class Sweepstake < ApplicationRecord
 
   # Upper bound on entries per sweepstake — guards against oversized payloads.
   MAX_ENTRIES = 500
+  # Most entries one person can claim in a single registration (when the
+  # organizer allows multiple entries). Caps the share-page quantity dropdown.
+  MAX_ENTRIES_PER_REGISTRATION = 10
   # Free-text prediction questions (e.g. Golden Ball/Boot/Glove).
   MAX_PREDICTION_FIELDS = 12
   PREDICTION_LABEL_MAX = 60
@@ -97,6 +100,13 @@ class Sweepstake < ApplicationRecord
 
   def full?
     max_participants.present? && participants.count >= max_participants
+  end
+
+  # How many more participants can register; nil when there is no cap.
+  def remaining_capacity
+    return nil if max_participants.blank?
+
+    [max_participants - participants.count, 0].max
   end
 
   def accepting_registrations?

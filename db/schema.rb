@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
   create_table "allocations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "draw_id", null: false
@@ -228,6 +228,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_120001) do
   end
 
   create_table "sweepstakes", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.boolean "allow_multiple_entries", default: false, null: false
     t.integer "allocation_rule", default: 0, null: false
     t.bigint "competition_template_id"
     t.datetime "created_at", null: false
