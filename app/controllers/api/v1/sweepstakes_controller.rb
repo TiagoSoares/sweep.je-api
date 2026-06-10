@@ -1,7 +1,7 @@
 module Api
   module V1
     class SweepstakesController < BaseController
-      before_action :set_sweepstake, only: %i[show update destroy lock draw reset_draw presentation]
+      before_action :set_sweepstake, only: %i[show update destroy lock draw reset_draw swap_allocations presentation]
 
       # GET /api/v1/sweepstakes
       def index
@@ -78,6 +78,22 @@ module Api
         end
         @sweepstake.schedule_auto_draw!
         render json: { sweepstake: SweepstakeSerializer.new(@sweepstake.reload).serializable_hash }
+      end
+
+      # POST /api/v1/sweepstakes/:id/swap_allocations — trade two teams between
+      # their owners after the draw (§4.3). Marks the draw as manually adjusted.
+      # Body: { entry_ids: [entry_a_public_id, entry_b_public_id] }.
+      def swap_allocations
+        return render_conflict("This sweepstake has not been drawn") unless @sweepstake.drawn?
+
+        ids = Array(params[:entry_ids]).map(&:to_s)
+        return render_invalid_swap("Pick exactly two teams to swap") unless ids.size == 2
+
+        by_id = @sweepstake.entries.where(public_id: ids).index_by(&:public_id)
+        AllocationSwap.new(@sweepstake.current_draw, by_id[ids.first], by_id[ids.last]).call
+        render json: { sweepstake: SweepstakeSerializer.new(@sweepstake.reload).serializable_hash }
+      rescue AllocationSwap::InvalidSwap => e
+        render_invalid_swap(e.message)
       end
 
       # GET /api/v1/sweepstakes/:id/presentation — data for the live-draw reveal:
@@ -159,6 +175,10 @@ module Api
 
       def render_conflict(detail)
         render_error(status: :conflict, code: "conflict", detail:)
+      end
+
+      def render_invalid_swap(detail)
+        render_error(status: :unprocessable_content, code: "invalid_swap", detail:)
       end
 
       def too_many_entries

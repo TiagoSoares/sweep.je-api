@@ -3,9 +3,10 @@
 module DrawResults
   module_function
 
-  # An entry as { name, flag } (flag may be nil for manual entries).
+  # An entry as { id, name, flag } (flag may be nil for manual entries). The id
+  # lets the organizer pick teams to swap after the draw.
   def entry_hash(entry)
-    { name: entry.name, flag: entry.metadata.is_a?(Hash) ? entry.metadata["flag"] : nil }
+    { id: entry.public_id, name: entry.name, flag: entry.metadata.is_a?(Hash) ? entry.metadata["flag"] : nil }
   end
 
   # Allocations grouped by participant, in registration order:
@@ -52,6 +53,7 @@ module DrawResults
       seed: draw.seed,
       run_at: draw.run_at,
       trigger: draw.trigger,
+      adjusted_at: draw.adjusted_at,
       participant_order: ordered(draw.participant_order, sweepstake.participants),
       entry_order: ordered(draw.entry_order, sweepstake.entries),
       allocations: draw.allocations.includes(:participant, :entry).map do |a|

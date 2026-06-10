@@ -42,6 +42,11 @@ class SweepstakeSerializer
     s.remaining_entries
   end
 
+  # Whether the current draw was manually adjusted (teams swapped post-draw).
+  attribute :draw_adjusted do |s|
+    s.current_draw&.adjusted_at.present?
+  end
+
   # Draw results once drawn (nil otherwise), so the manage screen can show them.
   attribute :results do |s|
     DrawResults.results_for(s)

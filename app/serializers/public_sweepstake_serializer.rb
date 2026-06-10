@@ -55,6 +55,12 @@ class PublicSweepstakeSerializer
     end
   end
 
+  # Whether the current draw was manually adjusted (teams swapped post-draw), so
+  # the public page can be upfront that the result no longer matches the seed.
+  attribute :draw_adjusted do |s|
+    s.current_draw&.adjusted_at.present?
+  end
+
   # Draw results once drawn (nil otherwise): each participant and their entries.
   attribute :results do |s|
     DrawResults.results_for(s)

@@ -5,6 +5,7 @@ class SweepstakePolicy < ApplicationPolicy
   def lock? = owner?
   def draw? = owner?
   def reset_draw? = owner?
+  def swap_allocations? = owner?
   def presentation? = owner?
 
   def create? = user.present?
