@@ -22,10 +22,18 @@ class AllocationSwap
     end
 
     Draw.transaction do
-      owner_a = alloc_a.participant_id
-      alloc_a.update!(participant_id: alloc_b.participant_id)
-      alloc_b.update!(participant_id: owner_a)
-      @draw.update!(adjusted_at: Time.current)
+      owner_a = alloc_a.participant
+      owner_b = alloc_b.participant
+      alloc_a.update!(participant_id: owner_b.id)
+      alloc_b.update!(participant_id: owner_a.id)
+
+      now = Time.current
+      record = {
+        "at" => now.utc.iso8601,
+        "teams" => [@entry_a.name, @entry_b.name],
+        "between" => [owner_a.name, owner_b.name]
+      }
+      @draw.update!(adjusted_at: now, adjustments: @draw.adjustments + [record])
     end
     @draw
   end

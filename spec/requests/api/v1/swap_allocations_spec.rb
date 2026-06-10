@@ -38,6 +38,12 @@ RSpec.describe "Api::V1 swap allocations", type: :request do
     expect(team_owner(entry_b)).to eq(owner_a_before)
     expect(json.dig("sweepstake", "draw_adjusted")).to be(true)
     expect(sweepstake.current_draw.reload.adjusted_at).to be_present
+
+    # The swap is logged with the teams and the two people involved.
+    log = json.dig("sweepstake", "draw_adjustments")
+    expect(log.size).to eq(1)
+    expect(log.first["teams"]).to contain_exactly(a.entry.name, b.entry.name)
+    expect(log.first["between"]).to contain_exactly(owner_a_before, owner_b_before)
   end
 
   it "keeps every team allocated exactly once after a swap" do
@@ -56,6 +62,7 @@ RSpec.describe "Api::V1 swap allocations", type: :request do
          params: { entry_ids: [a.entry.public_id, b.entry.public_id] }, headers: headers
     get "/api/v1/s/#{sweepstake.share_token}/verification"
     expect(json.dig("verification", "adjusted_at")).to be_present
+    expect(json.dig("verification", "adjustments").size).to eq(1)
   end
 
   it "rejects swapping two teams that belong to the same person" do

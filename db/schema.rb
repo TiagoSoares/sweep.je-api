@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_120002) do
   create_table "allocations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "draw_id", null: false
@@ -39,6 +39,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_120001) do
 
   create_table "draws", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "adjusted_at"
+    t.json "adjustments"
     t.integer "algorithm_version", default: 1, null: false
     t.datetime "created_at", null: false
     t.json "entry_order", null: false

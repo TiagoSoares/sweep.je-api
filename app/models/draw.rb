@@ -8,4 +8,9 @@ class Draw < ApplicationRecord
   enum :trigger, { manual: 0, scheduled: 1 }, default: :manual
 
   validates :seed, :algorithm_version, :run_at, presence: true
+
+  # Log of manual post-draw swaps; always an array, even when the column is NULL.
+  def adjustments
+    self[:adjustments] || []
+  end
 end

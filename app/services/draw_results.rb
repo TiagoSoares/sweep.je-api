@@ -54,6 +54,7 @@ module DrawResults
       run_at: draw.run_at,
       trigger: draw.trigger,
       adjusted_at: draw.adjusted_at,
+      adjustments: draw.adjustments,
       participant_order: ordered(draw.participant_order, sweepstake.participants),
       entry_order: ordered(draw.entry_order, sweepstake.entries),
       allocations: draw.allocations.includes(:participant, :entry).map do |a|

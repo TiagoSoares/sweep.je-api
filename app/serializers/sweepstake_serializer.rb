@@ -42,9 +42,14 @@ class SweepstakeSerializer
     s.remaining_entries
   end
 
-  # Whether the current draw was manually adjusted (teams swapped post-draw).
+  # Whether the current draw was manually adjusted (teams swapped post-draw), and
+  # the log of those swaps so the manage screen can list what changed.
   attribute :draw_adjusted do |s|
     s.current_draw&.adjusted_at.present?
+  end
+
+  attribute :draw_adjustments do |s|
+    s.current_draw&.adjustments || []
   end
 
   # Draw results once drawn (nil otherwise), so the manage screen can show them.
