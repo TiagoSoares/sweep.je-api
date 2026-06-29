@@ -359,7 +359,7 @@ GEM
     thruster (0.1.21-aarch64-linux)
     thruster (0.1.21-x86_64-linux)
     timeout (0.6.1)
-    trilogy (2.12.5)
+    trilogy (2.12.6)
       bigdecimal
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -414,7 +414,7 @@ DEPENDENCIES
   solid_cache
   solid_queue
   thruster
-  trilogy (~> 2.8)
+  trilogy (~> 2.12)
   tzinfo-data
   ulid
   webmock

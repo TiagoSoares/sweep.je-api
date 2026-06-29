@@ -3,7 +3,7 @@ source "https://rubygems.org"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.3"
 # Use Trilogy (MySQL/MariaDB-compatible client, no system libmysqlclient needed)
-gem "trilogy", "~> 2.8"
+gem "trilogy", "~> 2.12"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
