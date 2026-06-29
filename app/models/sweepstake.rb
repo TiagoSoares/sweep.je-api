@@ -18,6 +18,10 @@ class Sweepstake < ApplicationRecord
   PRIZE_VALUE_MAX = 200
   PRIZE_KINDS = %w[position prediction custom].freeze
 
+  # Maps a competition_template slug to its football-data.org competition code,
+  # enabling the live-tournament feature for sweepstakes built on that template.
+  FOOTBALL_COMPETITIONS = { "world-cup-2026" => "WC" }.freeze
+
   secure_token_field :share_token
 
   belongs_to :user
@@ -129,6 +133,17 @@ class Sweepstake < ApplicationRecord
 
   def accepting_registrations?
     registration_open? && !full?
+  end
+
+  # The football-data.org competition code when this sweepstake is built on a
+  # supported tournament template (nil otherwise).
+  def football_competition_code
+    FOOTBALL_COMPETITIONS[competition_template&.slug]
+  end
+
+  # Whether live tournament data is available for this sweepstake.
+  def world_cup?
+    football_competition_code.present?
   end
 
   private

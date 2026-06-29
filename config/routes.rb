@@ -46,6 +46,7 @@ Rails.application.routes.draw do
         get   "me",           action: :me
         get   "results",      action: :results
         get   "verification", action: :verification
+        get   "tournament",   action: :tournament
       end
     end
   end

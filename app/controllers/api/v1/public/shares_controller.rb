@@ -68,6 +68,20 @@ module Api
           render json: { verification: DrawResults.verification_for(@sweepstake) }
         end
 
+        # GET /api/v1/s/:share_token/tournament — live World Cup data (group
+        # standings, knockout bracket, and per-team/per-entry alive status).
+        # 404 when this isn't a World Cup sweepstake (frontend hides the tab);
+        # 503 when upstream data is unavailable (frontend shows "unavailable").
+        def tournament
+          return render_not_found unless @sweepstake.world_cup?
+
+          render json: WorldCup::Tournament.new(@sweepstake).call
+        rescue FootballData::Error => e
+          Rails.logger.warn("[tournament] #{e.class}: #{e.message}")
+          render_error(status: :service_unavailable, code: "tournament_unavailable",
+                       detail: "Live tournament data is temporarily unavailable")
+        end
+
         private
 
         def set_sweepstake
