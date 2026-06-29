@@ -46,7 +46,16 @@ module WorldCup
     def group_tables(standings)
       Array(standings["standings"])
         .select { |s| s["group"].present? && s["type"] == "TOTAL" }
-        .map { |s| { key: s["group"], name: humanize_group(s["group"]), rows: Array(s["table"]) } }
+        .map do |s|
+          key = group_key(s["group"])
+          { key:, name: humanize_group(key), rows: Array(s["table"]) }
+        end
+    end
+
+    # Canonical group key. football-data returns "Group A" in /standings but
+    # "GROUP_A" in /matches, so normalize both to "GROUP_A" before comparing.
+    def group_key(raw)
+      raw.to_s.strip.upcase.gsub(/\s+/, "_")
     end
 
     def competition(standings)
@@ -98,10 +107,9 @@ module WorldCup
         end
       end
 
-      ko = knockout_matches
       @qualified = Set.new
       @lost_ko = Set.new
-      ko.each do |m|
+      knockout_matches.each do |m|
         home = m.dig("homeTeam", "id")
         away = m.dig("awayTeam", "id")
         @qualified << home if home.present?
@@ -112,24 +120,23 @@ module WorldCup
         @lost_ko << away if winner == "HOME_TEAM" && away.present?
         @lost_ko << home if winner == "AWAY_TEAM" && home.present?
       end
-      @knockout_started = @qualified.any?
 
       @group_complete = {}
       @group_tables.each do |table|
-        ms = @all_matches.select { |m| m["stage"] == "GROUP_STAGE" && m["group"] == table[:key] }
+        ms = @all_matches.select { |m| m["stage"] == "GROUP_STAGE" && group_key(m["group"]) == table[:key] }
         @group_complete[table[:key]] = ms.any? && ms.all? { |m| m["status"] == "FINISHED" }
       end
     end
 
     def team_status(team_id)
       return "eliminated" if @lost_ko.include?(team_id)
-      return "alive" if @qualified.include?(team_id)
+      return "alive" if @qualified.include?(team_id) # reached (and not lost) the knockout
 
       group = @team_group[team_id]
       return "alive" unless group && @group_complete[group]
 
-      return "eliminated" if @knockout_started # group done, didn't reach knockout
-
+      # Group is decided and they're not in the knockout: top finishers are
+      # advancing (kept alive even if the bracket hasn't populated their slot yet).
       position = @team_position[team_id]
       position && position <= GROUP_ADVANCE ? "alive" : "eliminated"
     end
@@ -230,7 +237,10 @@ module WorldCup
       fd_id = meta["fd_team_id"]
       return fd_id.to_i if fd_id.present? && @teams.key?(fd_id.to_i)
 
-      code = meta["country_code"].to_s.downcase
+      # Country code from metadata, else derived from the entry name via the
+      # reference — so entries named slightly differently to football-data (e.g.
+      # "DR Congo" vs "Congo DR") still match by their shared FIFA code.
+      code = (meta["country_code"].presence || WorldCup::Reference.lookup(name: entry.name)&.fetch(:code)).to_s.downcase
       return indexes[:by_code][code] if code.present? && indexes[:by_code].key?(code)
 
       indexes[:by_name][WorldCup::Reference.normalize(entry.name)]

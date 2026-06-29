@@ -20,7 +20,9 @@ RSpec.describe WorldCup::Tournament do
       "season" => { "startDate" => "2026-06-11" },
       "standings" => [
         {
-          "stage" => "GROUP_STAGE", "type" => "TOTAL", "group" => "GROUP_A",
+          # football-data returns the spaced form here ("Group A") but the
+          # underscored form ("GROUP_A") in /matches — the builder normalizes both.
+          "stage" => "GROUP_STAGE", "type" => "TOTAL", "group" => "Group A",
           "table" => [
             standing_row(1, 1, "France", "FRA", won: 3, lost: 0, gf: 6, ga: 1),
             standing_row(2, 2, "Brazil", "BRA", won: 2, lost: 1, gf: 4, ga: 2),
@@ -144,6 +146,28 @@ RSpec.describe WorldCup::Tournament do
       expect(Rails.logger).to receive(:warn).with(/no football-data team/).at_least(:once)
       ids = described_class.new(sweepstake, client:).call[:entries].map { |e| e[:team_id] }
       expect(ids).not_to include(nil)
+    end
+
+    it "matches a differently-named entry by its reference country code" do
+      # Our entry is "DR Congo"; football-data calls the team "Congo DR" (tla COD).
+      bespoke = instance_double(
+        FootballData::Client,
+        standings: {
+          "competition" => { "code" => "WC", "name" => "FIFA World Cup" },
+          "season" => { "startDate" => "2026-06-11" },
+          "standings" => [{
+            "stage" => "GROUP_STAGE", "type" => "TOTAL", "group" => "Group B",
+            "table" => [standing_row(1, 1934, "Congo DR", "COD", won: 2, lost: 1)]
+          }]
+        },
+        matches: { "matches" => [] }
+      )
+      sweepstake.entries.destroy_all
+      create(:entry, sweepstake:, name: "DR Congo", metadata: {})
+
+      result = described_class.new(sweepstake, client: bespoke).call
+      expect(result[:entries].map { |e| e[:team_id] }).to eq([1934])
+      expect(result[:teams].first).to include(name: "Congo DR", flag: "🇨🇩")
     end
   end
 end
